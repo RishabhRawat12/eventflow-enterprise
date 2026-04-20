@@ -1,14 +1,16 @@
 import { useEffect, useRef } from 'react';
 import { useVenueStore } from '../store/useStore';
+import { fetchVenueData } from '../services/venueService';
 
 export const useWebSocket = (venueId: string) => {
-  const updateZone = useVenueStore((state) => state.updateZone);
+  const { updateZone, token } = useVenueStore();
   const socketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    // Determine the WS URL (using the same host as the current location)
+    if (!token) return;
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws/venue/${venueId}`;
+    const wsUrl = `${protocol}//${window.location.host}/ws/venue/${venueId}?token=${token}`;
     
     console.log(`[WS] Connecting to ${wsUrl}...`);
     const socket = new WebSocket(wsUrl);
@@ -16,10 +18,15 @@ export const useWebSocket = (venueId: string) => {
 
     socket.onmessage = (event) => {
       try {
-        // Parse minified JSON: {"z": 14, "w": 5.2}
         const data = JSON.parse(event.data);
-        if (data.z !== undefined && data.w !== undefined) {
-          // Direct store update (Optimized)
+        
+        // Handle atomic system events
+        if (data.type === 'RELOAD') {
+          console.log('[WS] System RELOAD triggered. Fetching fresh geometry...');
+          fetchVenueData().catch(console.error);
+        } 
+        // Handle granular telemetry
+        else if (data.z !== undefined && data.w !== undefined) {
           updateZone(data.z, data.w);
         }
       } catch (err) {
@@ -27,14 +34,15 @@ export const useWebSocket = (venueId: string) => {
       }
     };
 
-    socket.onopen = () => console.log('[WS] Connected.');
-    socket.onclose = () => console.log('[WS] Disconnected.');
-    socket.onerror = (err) => console.error('[WS_ERROR]', err);
-
-    return () => {
-      socket.close();
+    socket.onopen = () => console.log('[WS] Secured Connection Active.');
+    socket.onclose = (e) => {
+      if (e.code === 4003) {
+        console.error('[WS] Auth Failed: Unauthorized.');
+      }
     };
-  }, [venueId, updateZone]);
+
+    return () => socket.close();
+  }, [venueId, updateZone, token]);
 
   return socketRef.current;
 };

@@ -37,8 +37,13 @@ func main() {
 	rampUpRate := flag.Int("ramp", 50, "Workers to launch per second")
 	baseURL := flag.String("url", "http://localhost:8000", "Base URL of the FastAPI server")
 	wsURL := flag.String("ws", "ws://localhost:8000", "Base WebSocket URL")
+	token := flag.String("token", "", "X-Internal-Load-Token bypass key")
 	duration := flag.Int("duration", 30, "Duration of the test in seconds")
 	flag.Parse()
+
+	if *token == "" {
+		log.Fatal("Error: --token is required for the production-grade acid test.")
+	}
 
 	log.Printf("Starting Load Test: %d workers, %d/sec ramp-up", *targetWorkers, *rampUpRate)
 
@@ -59,23 +64,29 @@ func main() {
 			}
 			for i := 0; i < toLaunch; i++ {
 				wg.Add(1)
-				go worker(currentWorkers+i, *baseURL, *wsURL, &wg, ctx)
+				go worker(currentWorkers+i, *baseURL, *wsURL, *token, &wg, ctx)
 			}
 			currentWorkers += toLaunch
 			log.Printf("Launched %d/%d workers...", currentWorkers, *targetWorkers)
+		case <-ctx:
+			goto Wait
 		}
 	}
 
+Wait:
 	wg.Wait()
 	printReport()
 }
 
-func worker(id int, baseURL, wsURL string, wg *sync.WaitGroup, ctx <-chan time.Time) {
+func worker(id int, baseURL, wsURL, token string, wg *sync.WaitGroup, ctx <-chan time.Time) {
 	defer wg.Done()
 
-	// 1. Dial WebSocket
-	url := fmt.Sprintf("%s/ws/venue/stadium", wsURL)
-	conn, _, err := websocket.DefaultDialer.Dial(url, nil)
+	// 1. Dial WebSocket with token in query param and header bypass
+	wsTarget := fmt.Sprintf("%s/ws/venue/stadium?token=%s", wsURL, token)
+	header := http.Header{}
+	header.Add("X-Internal-Load-Token", token)
+	
+	conn, _, err := websocket.DefaultDialer.Dial(wsTarget, header)
 	if err != nil {
 		log.Printf("Worker %d: WS Dial failed: %v", id, err)
 		return
@@ -109,17 +120,17 @@ func worker(id int, baseURL, wsURL string, wg *sync.WaitGroup, ctx <-chan time.T
 			time.Sleep(time.Duration(1+rand.Intn(4)) * time.Second)
 			
 			// a. POST /api/v1/route (High Frequency)
-			sendRouteRequest(client, baseURL)
+			sendRouteRequest(client, baseURL, token)
 			
 			// b. POST /api/v1/concierge (Lower Frequency)
 			if rand.Float32() < 0.1 {
-				sendConciergeRequest(client, baseURL)
+				sendConciergeRequest(client, baseURL, token)
 			}
 		}
 	}
 }
 
-func sendRouteRequest(client *http.Client, baseURL string) {
+func sendRouteRequest(client *http.Client, baseURL, token string) {
 	start := time.Now()
 	
 	// Random node IDs from test.venue (0 to 3)
@@ -128,7 +139,11 @@ func sendRouteRequest(client *http.Client, baseURL string) {
 		GoalID:  rand.Intn(4),
 	})
 	
-	resp, err := client.Post(baseURL+"/api/v1/route", "application/json", bytes.NewBuffer(reqBody))
+	req, _ := http.NewRequest("POST", baseURL+"/api/v1/route", bytes.NewBuffer(reqBody))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Internal-Load-Token", token)
+	
+	resp, err := client.Do(req)
 	latency := time.Since(start).Seconds() * 1000
 
 	if err != nil || resp.StatusCode != 200 {
@@ -145,12 +160,16 @@ func sendRouteRequest(client *http.Client, baseURL string) {
 	metrics.LatencyMu.Unlock()
 }
 
-func sendConciergeRequest(client *http.Client, baseURL string) {
+func sendConciergeRequest(client *http.Client, baseURL, token string) {
 	reqBody, _ := json.Marshal(map[string]string{
 		"prompt": "How do I get to MainArena?",
 		"role":   "attendee",
 	})
-	resp, err := client.Post(baseURL+"/api/v1/concierge", "application/json", bytes.NewBuffer(reqBody))
+	req, _ := http.NewRequest("POST", baseURL+"/api/v1/concierge", bytes.NewBuffer(reqBody))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Internal-Load-Token", token)
+	
+	resp, err := client.Do(req)
 	if err == nil && resp.StatusCode == 200 {
 		resp.Body.Close()
 	}

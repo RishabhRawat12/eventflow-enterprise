@@ -202,3 +202,56 @@ cdef float _astar_internal(VenueGraph* graph, unsigned int start_id, unsigned in
                 
     free(g_scores)
     return -1.0 # No path
+
+from libcpp.vector cimport vector
+from libcpp.queue cimport queue
+from libcpp.utility cimport pair
+
+ctypedef pair[unsigned int, unsigned int] NodeDepth
+
+cpdef get_subgraph(unsigned int start_id, unsigned int depth):
+    """
+    Bare-metal BFS traversal from start_id up to 'depth' edges away.
+    Returns a list of node IDs. Executed entirely within nogil block.
+    """
+    global _global_graph
+    if _global_graph.node_count == 0 or start_id >= _global_graph.node_count:
+        return []
+
+    cdef vector[unsigned int] result
+    cdef vector[char] visited
+    visited.resize(_global_graph.node_count, 0)
+    
+    cdef queue[NodeDepth] q
+    cdef NodeDepth entry
+    cdef NodeDepth current
+    cdef unsigned int curr_id, curr_depth, i, neighbor_id
+    cdef Node* node
+    cdef Edge* edge
+    
+    with nogil:
+        visited[start_id] = 1
+        entry.first = start_id
+        entry.second = 0
+        q.push(entry)
+        
+        while not q.empty():
+            current = q.front()
+            q.pop()
+            
+            curr_id = current.first
+            curr_depth = current.second
+            result.push_back(curr_id)
+            
+            if curr_depth < depth:
+                node = &_global_graph.nodes[curr_id]
+                for i in range(node.edge_start_idx, node.edge_start_idx + node.edge_count):
+                    edge = &_global_graph.edges[i]
+                    neighbor_id = edge.target_id
+                    if not visited[neighbor_id]:
+                        visited[neighbor_id] = 1
+                        entry.first = neighbor_id
+                        entry.second = curr_depth + 1
+                        q.push(entry)
+                        
+    return result

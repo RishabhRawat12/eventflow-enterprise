@@ -17,21 +17,35 @@ interface AIResponse {
 
 interface VenueStore {
   zones: Record<number, ZoneState>;
+  nodes: any[];
+  edges: any[];
+  configs: Record<string, any>;
+  token: string | null;
   staffAlerts: AIResponse[];
   attendeeMessages: AIResponse[];
   
-  // High-frequency granular update
+  // State management
+  setVenueData: (data: { nodes: any[], edges: any[], configs: Record<string, any> }) => void;
   updateZone: (id: number, weight: number) => void;
-  
-  // AI State management
+  setToken: (token: string | null) => void;
   addStaffAlert: (alert: AIResponse) => void;
   addAttendeeMessage: (msg: AIResponse) => void;
 }
 
 export const useVenueStore = create<VenueStore>((set) => ({
   zones: {},
+  nodes: [],
+  edges: [],
+  configs: {},
+  token: localStorage.getItem('ef_token'),
   staffAlerts: [],
   attendeeMessages: [],
+
+  setVenueData: (data) => set({ 
+    nodes: data.nodes, 
+    edges: data.edges, 
+    configs: data.configs 
+  }),
 
   updateZone: (id, weight) => set((state) => ({
     zones: {
@@ -40,8 +54,14 @@ export const useVenueStore = create<VenueStore>((set) => ({
     }
   })),
 
+  setToken: (token) => {
+    if (token) localStorage.setItem('ef_token', token);
+    else localStorage.removeItem('ef_token');
+    set({ token });
+  },
+
   addStaffAlert: (alert) => set((state) => ({
-    staffAlerts: [alert, ...state.staffAlerts].slice(0, 10) // Keep last 10
+    staffAlerts: [alert, ...state.staffAlerts].slice(0, 10)
   })),
 
   addAttendeeMessage: (msg) => set((state) => ({

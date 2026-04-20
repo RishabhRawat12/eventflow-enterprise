@@ -19,7 +19,7 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/staff" element={<StaffDashboard />} />
           <Route path="/attendee" element={<AttendeeGuide />} />
-          <Route path="/" element={<Navigate to="/attendee" replace />} />
+          <Route path="/" element={<Navigate to="/staff" replace />} />
         </Routes>
       </div>
     </Router>

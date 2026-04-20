@@ -1,0 +1,22 @@
+{
+  "venues": [
+    {
+      "id": "stadium",
+      "name": "Enterprise Stadium",
+      "nodes": [
+        {"id": 0, "x": 100, "y": 100, "meta": {"label": "Gate A"}},
+        {"id": 1, "x": 200, "y": 100, "meta": {"label": "Lobby"}},
+        {"id": 2, "x": 150, "y": 200, "meta": {"label": "Main Stage"}}
+      ],
+      "edges": [
+        {"from": 0, "to": 1, "dist": 100},
+        {"from": 1, "to": 2, "dist": 120},
+        {"from": 2, "to": 0, "dist": 110}
+      ],
+      "zones": [
+        {"id": 1, "name": "North Stand", "cap": 500},
+        {"id": 2, "name": "VIP Lounge", "cap": 50}
+      ]
+    }
+  ]
+}

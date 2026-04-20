@@ -3,11 +3,10 @@ import asyncio
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from services.telemetry import telemetry_service
+from services.routing_engine import routing_engine
+from services.redis_state import redis_service
 import telemetry_pb2
 from google.protobuf import timestamp_pb2
-
-# The Cython module 'astar' will be imported from the path defined in build_all.py
-import astar 
 
 router = APIRouter(prefix="/api/v1")
 
@@ -17,20 +16,26 @@ class RouteRequest(BaseModel):
     venue_id: str = "stadium_01"
 
 @router.post("/route")
-def get_path(request: RouteRequest):
+async def get_path(request: RouteRequest):
     """
     Executes high-performance A* routing in Cython.
     Passes only primitive integers into the C extension to maintain zero overhead.
     """
     t0 = time.perf_counter()
     
-    # 1. Core Cython Traversal (Synchronous/Nogil)
-    # distance is -1.0 if no path exists
-    distance = astar.find_path(request.start_id, request.goal_id)
+    # 1. Core Cython Traversal (Guarded by threading.Lock)
+    # Offloaded to threadpool for OS-level concurrency
+    distance = await asyncio.to_thread(routing_engine.get_path, request.start_id, request.goal_id)
     
     latency_ms = (time.perf_counter() - t0) * 1000
 
-    # 2. Fire-and-forget Telemetry Streaming
+    # 2. Update Cogestion Weights in Redis (Heatmap)
+    # Each routing request simulates a "load" on the start node
+    # We use a non-blocking background task for this too
+    asyncio.create_task(redis_service.update_zone_weight(request.start_id, round(float(time.time() % 10), 2))) 
+    # ^ Demo heuristic: use time based fluctuations for visual variety
+    
+    # 3. Fire-and-forget Telemetry Streaming
     # Offloaded to a background task so it doesn't block the routing response
     ts = timestamp_pb2.Timestamp()
     ts.GetCurrentTime()

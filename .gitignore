@@ -34,3 +34,10 @@ apps/load-generator/bin/
 
 # Logs
 *.log
+*.txt
+apps/server/server_err.txt
+apps/server/server_log.txt
+apps/server/server_out.txt
+
+# Binaries
+*.exe

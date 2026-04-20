@@ -1,16 +1,22 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
 from services.redis_state import redis_service
+from middleware.auth import validate_token
 import asyncio
 
 router = APIRouter()
 
 @router.websocket("/ws/venue/{venue_id}")
-async def venue_websocket(websocket: WebSocket, venue_id: str):
+async def venue_websocket(websocket: WebSocket, venue_id: str, token: str = Query(...)):
     """
     Subscribes the client to real-time venue updates.
-    Payloads are minified JSON (e.g. {"z": 14, "w": 5.2}) to minimize overhead.
+    Enforces Zero-Trust auth via query parameter.
     """
-    await websocket.accept()
+    try:
+        await validate_token(token)
+        await websocket.accept()
+    except Exception:
+        await websocket.close(code=4003)
+        return
     
     # Each connection gets its own queue fed by the global Redis Pub/Sub listener
     queue = asyncio.Queue()

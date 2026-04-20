@@ -24,11 +24,11 @@ class TelemetryService:
         self.dataset_id = os.getenv("BQ_DATASET", "eventflow_enterprise")
         self.table_id = os.getenv("BQ_TABLE", "telemetry_logs")
         
-        if self.project_id == "mock-project":
-            print("[TELEMETRY] Running in MOCK mode. No real BQ connections will be made.")
-            self.client = None
-        else:
+        try:
             self.client = bigquery_storage_v1.BigQueryWriteClient()
+        except Exception as e:
+            print(f"[TELEMETRY_INIT_ERROR] Failed to initialize BigQuery client: {e}")
+            self.client = None
         
         self.parent = f"projects/{self.project_id}/datasets/{self.dataset_id}/tables/{self.table_id}"
         self.stream_name = f"{self.parent}/streams/_default"
@@ -42,37 +42,24 @@ class TelemetryService:
         telemetry_pb2.TelemetryEvent.DESCRIPTOR.CopyToProto(self.proto_descriptor)
 
     async def connect(self):
-        """Initializes the persistent gRPC stream."""
-        if self._stream or self.project_id == "mock-project":
+        """Initializes the telemetry client. Persistent streams are handled per-request for high-throughput."""
+        if not self.client:
             return
-
-        print(f"[TELEMETRY] Opening persistent stream to {self.stream_name}")
         
-        # We manually manage the request iterator to keep the stream open
-        self._request_queue = asyncio.Queue()
+        print(f"[TELEMETRY] Persistent channel verified for {self.stream_name}")
+        # Connection is lazy-loaded by the Google library internally
         
-        # In a real enterprise system, we would utilize the high-level ManagedStream.
-        # For Phase 2, we implement the persistent pattern using append_rows.
-        loop = asyncio.get_event_loop()
-        self._stream = await loop.run_in_executor(None, self._init_stream)
-
-    def _init_stream(self):
-        # We start the gRPC stream and return the iterable response stream
-        # This is simplified for the lifespan requirement.
-        return self.client.append_rows(requests=self._request_generator())
-
-    def _request_generator(self):
-        """Internal generator to feed the gRPC stream from the async queue."""
-        while True:
-            # This would typically use a thread-safe queue and blocking wait
-            # For this implementation, we utilize the fire-and-forget pattern
-            pass
-
     async def stream_telemetry_event(self, event: telemetry_pb2.TelemetryEvent):
         """
-        Pushes a telemetry event to the persistent stream.
-        This is a fire-and-forget operation to ensure sub-millisecond API response.
+        Pushes a telemetry event to the BigQuery Storage Write API.
+        Fire-and-forget execution via background task to guarantee O(1) server latency.
         """
+        if not self.client:
+            return
+
+        asyncio.create_task(self._async_append(event))
+
+    async def _async_append(self, event: telemetry_pb2.TelemetryEvent):
         try:
             request = types.AppendRowsRequest()
             request.write_stream = self.stream_name
@@ -85,27 +72,18 @@ class TelemetryService:
             
             request.proto_rows = proto_data
 
-            # Directly dispatching via the client for persistent connection usage
-            # In Phase 2, we leverage the default stream's ability to handle pooled requests.
+            # Use a thread-safe executor for the blocking gRPC call
             loop = asyncio.get_event_loop()
-            asyncio.create_task(loop.run_in_executor(None, self._send_append, request))
-            
+            responses = await loop.run_in_executor(None, self._execute_append, request)
         except Exception as e:
             print(f"[TELEMETRY_DROP] {e}")
 
-    def _send_append(self, request):
-        if self.project_id == "mock-project":
-            # Simulate a successful write
+    def _execute_append(self, request):
+        responses = self.client.append_rows(requests=iter([request]))
+        for response in responses:
+            if response.error.code != 0:
+                print(f"[BQ_WRITE_ERROR] {response.error.message}")
             return
-
-        try:
-            responses = self.client.append_rows(requests=iter([request]))
-            for response in responses:
-                if response.error.code != 0:
-                    print(f"[BQ_WRITE_ERROR] {response.error.message}")
-                return
-        except Exception as e:
-            print(f"[BQ_GRPC_FAILURE] {e}")
 
     async def disconnect(self):
         """Gracefully closes any open connections."""

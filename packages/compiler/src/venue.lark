@@ -6,7 +6,8 @@ venue_package: "venue" STRING "{" definition* "}"
 
 zone_def: "zone" STRING "{" "cap" ":" NUMBER "," "loc" ":" "(" NUMBER "," NUMBER ")" "}"
 edge_def: "edge" STRING "->" STRING "{" "weight" ":" NUMBER "," "flow" ":" STRING "}"
-config_def: "config" STRING ":" STRING
+config_def: "config" NAME ":" (NUMBER | STRING)
+NAME: /[a-zA-Z_][a-zA-Z0-9_]*/
 
 STRING: /"[^"]*"/
 NUMBER: /-?\d+(\.\d+)?/

@@ -5,6 +5,7 @@ import os
 import json
 import google.generativeai as genai
 from services.redis_state import redis_service
+from services.routing_engine import routing_engine
 
 router = APIRouter(prefix="/api/v1")
 
@@ -33,6 +34,7 @@ class AttendeeResponse(BaseModel):
 class ConciergeRequest(BaseModel):
     prompt: str
     role: str = "attendee" # "staff" or "attendee"
+    current_node_id: Optional[int] = None
 
 # --- Gemini Service Initialization ---
 
@@ -60,15 +62,22 @@ async def ai_concierge(request: ConciergeRequest):
     Zero-trust Gemini proxy with live Redis context injection via system_instruction.
     """
     try:
-        # 1. Pull Live State from Redis (Context Injection)
-        keys = await redis_service.client.keys("venue:stadium:zone:*")
+        # 1. Pull Pruned State from Redis (Spatial Context Injection)
+        if request.current_node_id is not None:
+            # Extract sub-graph node IDs via the thread-safe Cython engine
+            pruned_node_ids = await asyncio.to_thread(routing_engine.get_subgraph, request.current_node_id)
+            keys = [f"venue:stadium:zone:{node_id}" for node_id in pruned_node_ids]
+        else:
+            keys = await redis_service.client.keys("venue:stadium:zone:*")
+            
         venue_context = []
         for key in keys:
             data = await redis_service.client.hgetall(key)
-            venue_context.append({
-                "id": key.split(":")[-1],
-                **data
-            })
+            if data:
+                venue_context.append({
+                    "id": key.split(":")[-1],
+                    **data
+                })
             
         context_json = json.dumps(venue_context)
         
@@ -92,21 +101,7 @@ async def ai_concierge(request: ConciergeRequest):
         schema = StaffResponse if request.role == "staff" else AttendeeResponse
         
         # 3. Model Execution (User prompt is isolated)
-        if api_key == "mock-key":
-            print("[AI] Running in MOCK mode. Returning simulated response.")
-            if request.role == "staff":
-                return {
-                    "severity": "INFO",
-                    "target_zones": ["NorthGate"],
-                    "dispersal_protocol": [{"zone_id": "0", "action": "Increase monitoring"}],
-                    "broadcast_message": "SIMULATED: All zones nominal. Maintaining flow."
-                }
-            else:
-                return {
-                    "answer": "SIMULATED: I see you are looking for info about the stadium. Based on the live data, everything looks clear!",
-                    "itinerary": [{"time": "12:00", "action": "Visit MainArena", "zone_id": "2"}],
-                    "suggested_route": ["0", "2"]
-                }
+        # Production: Mocks removed. Any failure returns 500.
 
         # Initialize model with system instruction (Corrected per expert advice)
         model = genai.GenerativeModel(

@@ -422,8 +422,14 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <pre class="cython line score-0">&#xA0;<span class="">032</span>:     <span class="nb">unsigned</span> <span class="nb">int</span> <span class="n">current_occupancy</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">033</span>:     <span class="nb">unsigned</span> <span class="nb">int</span> <span class="n">max_capacity</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">034</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">035</span>: <span class="k">cdef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">VenueGraph</span><span class="p">:</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">036</span>:     <span class="n">Node</span><span class="o">*</span> <span class="n">nodes</span>        <span class="c"># Array of all nodes</span></pre>
+<pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">035</span>: <span class="k">cdef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">VenueGraph</span><span class="p">:</span></pre>
+<pre class='cython code score-0 '>struct __pyx_t_5astar_VenueGraph {
+  struct __pyx_t_5astar_Node *nodes;
+  unsigned int node_count;
+  struct __pyx_t_5astar_Edge *edges;
+  unsigned int edge_count;
+};
+</pre><pre class="cython line score-0">&#xA0;<span class="">036</span>:     <span class="n">Node</span><span class="o">*</span> <span class="n">nodes</span>        <span class="c"># Array of all nodes</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">037</span>:     <span class="nb">unsigned</span> <span class="nb">int</span> <span class="n">node_count</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">038</span>:     <span class="n">Edge</span><span class="o">*</span> <span class="n">edges</span>        <span class="c"># Flat array of all edges</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">039</span>:     <span class="nb">unsigned</span> <span class="nb">int</span> <span class="n">edge_count</span></pre>
@@ -1688,6 +1694,11 @@ static PyObject *__pyx_pf_5astar_10run_astar_benchmark(CYTHON_UNUSED PyObject *_
   float __pyx_v_h_score;
   unsigned int __pyx_v_neighbor_id;
   float __pyx_r;
+/* … */
+  /* function exit code */
+  __pyx_L0:;
+  return __pyx_r;
+}
 </pre><pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">146</span>:     <span class="k">if</span> <span class="n">start_id</span> <span class="o">==</span> <span class="n">goal_id</span><span class="p">:</span> <span class="k">return</span> <span class="mf">0.0</span></pre>
 <pre class='cython code score-0 '>  __pyx_t_1 = (__pyx_v_start_id == __pyx_v_goal_id);
   if (__pyx_t_1) {
@@ -1821,5 +1832,294 @@ static PyObject *__pyx_pf_5astar_10run_astar_benchmark(CYTHON_UNUSED PyObject *_
 <pre class='cython code score-0 '>  free(__pyx_v_g_scores);
 </pre><pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">204</span>:     <span class="k">return</span> <span class="o">-</span><span class="mf">1.0</span> <span class="c"># No path</span></pre>
 <pre class='cython code score-0 '>  __pyx_r = -1.0;
+  goto __pyx_L0;
+</pre><pre class="cython line score-0">&#xA0;<span class="">205</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">206</span>: <span class="k">from</span><span class="w"> </span><span class="nn">libcpp.vector</span><span class="w"> </span><span class="k">cimport</span> <span class="n">vector</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">207</span>: <span class="k">from</span><span class="w"> </span><span class="nn">libcpp.queue</span><span class="w"> </span><span class="k">cimport</span> <span class="n">queue</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">208</span>: <span class="k">from</span><span class="w"> </span><span class="nn">libcpp.utility</span><span class="w"> </span><span class="k">cimport</span> <span class="n">pair</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">209</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">210</span>: <span class="k">ctypedef</span> <span class="n">pair</span><span class="p">[</span><span class="nb">unsigned</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">unsigned</span> <span class="nb">int</span><span class="p">]</span> <span class="n">NodeDepth</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">211</span>: </pre>
+<pre class="cython line score-58" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">212</span>: <span class="k">cpdef</span><span class="w"> </span><span class="nf">get_subgraph</span><span class="p">(</span><span class="nb">unsigned</span> <span class="nb">int</span> <span class="n">start_id</span><span class="p">,</span> <span class="nb">unsigned</span> <span class="nb">int</span> <span class="n">depth</span><span class="p">):</span></pre>
+<pre class='cython code score-58 '>static PyObject *__pyx_pw_5astar_13get_subgraph(PyObject *__pyx_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+); /*proto*/
+static PyObject *__pyx_f_5astar_get_subgraph(unsigned int __pyx_v_start_id, unsigned int __pyx_v_depth, CYTHON_UNUSED int __pyx_skip_dispatch) {
+  std::vector&lt;unsigned int&gt;  __pyx_v_result;
+  std::vector&lt;char&gt;  __pyx_v_visited;
+  std::queue&lt;__pyx_t_5astar_NodeDepth&gt;  __pyx_v_q;
+  __pyx_t_5astar_NodeDepth __pyx_v_entry;
+  __pyx_t_5astar_NodeDepth __pyx_v_current;
+  unsigned int __pyx_v_curr_id;
+  unsigned int __pyx_v_curr_depth;
+  unsigned int __pyx_v_i;
+  unsigned int __pyx_v_neighbor_id;
+  struct __pyx_t_5astar_Node *__pyx_v_node;
+  struct __pyx_t_5astar_Edge *__pyx_v_edge;
+  PyObject *__pyx_r = NULL;
+/* … */
+  /* function exit code */
+  __pyx_L1_error:;
+  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_t_3);
+  <span class='pyx_c_api'>__Pyx_AddTraceback</span>("astar.get_subgraph", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  <span class='refnanny'>__Pyx_XGIVEREF</span>(__pyx_r);
+  <span class='refnanny'>__Pyx_RefNannyFinishContext</span>();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5astar_13get_subgraph(PyObject *__pyx_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+); /*proto*/
+<span class='py_macro_api'>PyDoc_STRVAR</span>(__pyx_doc_5astar_12get_subgraph, "\n    Bare-metal BFS traversal from start_id up to 'depth' edges away.\n    Returns a list of node IDs. Executed entirely within nogil block.\n    ");
+static PyMethodDef __pyx_mdef_5astar_13get_subgraph = {"get_subgraph", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_5astar_13get_subgraph, __Pyx_METH_FASTCALL|METH_KEYWORDS, __pyx_doc_5astar_12get_subgraph};
+static PyObject *__pyx_pw_5astar_13get_subgraph(PyObject *__pyx_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+) {
+  unsigned int __pyx_v_start_id;
+  unsigned int __pyx_v_depth;
+  #if !CYTHON_METH_FASTCALL
+  CYTHON_UNUSED Py_ssize_t __pyx_nargs;
+  #endif
+  CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
+  PyObject *__pyx_r = 0;
+  <span class='refnanny'>__Pyx_RefNannyDeclarations</span>
+  <span class='refnanny'>__Pyx_RefNannySetupContext</span>("get_subgraph (wrapper)", 0);
+  #if !CYTHON_METH_FASTCALL
+  #if CYTHON_ASSUME_SAFE_SIZE
+  __pyx_nargs = <span class='py_macro_api'>PyTuple_GET_SIZE</span>(__pyx_args);
+  #else
+  __pyx_nargs = <span class='py_c_api'>PyTuple_Size</span>(__pyx_args); if (unlikely(__pyx_nargs &lt; 0)) return NULL;
+  #endif
+  #endif
+  __pyx_kwvalues = <span class='pyx_c_api'>__Pyx_KwValues_FASTCALL</span>(__pyx_args, __pyx_nargs);
+  {
+    PyObject ** const __pyx_pyargnames[] = {&amp;__pyx_mstate_global-&gt;__pyx_n_u_start_id,&amp;__pyx_mstate_global-&gt;__pyx_n_u_depth,0};
+  PyObject* values[2] = {0,0};
+    const Py_ssize_t __pyx_kwds_len = (__pyx_kwds) ? <span class='pyx_c_api'>__Pyx_NumKwargs_FASTCALL</span>(__pyx_kwds) : 0;
+    if (unlikely(__pyx_kwds_len) &lt; 0) <span class='error_goto'>__PYX_ERR(0, 212, __pyx_L3_error)</span>
+    if (__pyx_kwds_len &gt; 0) {
+      switch (__pyx_nargs) {
+        case  2:
+        values[1] = <span class='pyx_c_api'>__Pyx_ArgRef_FASTCALL</span>(__pyx_args, 1);
+        if (!CYTHON_ASSUME_SAFE_MACROS &amp;&amp; unlikely(!values[1])) <span class='error_goto'>__PYX_ERR(0, 212, __pyx_L3_error)</span>
+        CYTHON_FALLTHROUGH;
+        case  1:
+        values[0] = <span class='pyx_c_api'>__Pyx_ArgRef_FASTCALL</span>(__pyx_args, 0);
+        if (!CYTHON_ASSUME_SAFE_MACROS &amp;&amp; unlikely(!values[0])) <span class='error_goto'>__PYX_ERR(0, 212, __pyx_L3_error)</span>
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      const Py_ssize_t kwd_pos_args = __pyx_nargs;
+      if (<span class='pyx_c_api'>__Pyx_ParseKeywords</span>(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values, kwd_pos_args, __pyx_kwds_len, "get_subgraph", 0) &lt; (0)) <span class='error_goto'>__PYX_ERR(0, 212, __pyx_L3_error)</span>
+      for (Py_ssize_t i = __pyx_nargs; i &lt; 2; i++) {
+        if (unlikely(!values[i])) { <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("get_subgraph", 1, 2, 2, i); <span class='error_goto'>__PYX_ERR(0, 212, __pyx_L3_error)</span> }
+      }
+    } else if (unlikely(__pyx_nargs != 2)) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = <span class='pyx_c_api'>__Pyx_ArgRef_FASTCALL</span>(__pyx_args, 0);
+      if (!CYTHON_ASSUME_SAFE_MACROS &amp;&amp; unlikely(!values[0])) <span class='error_goto'>__PYX_ERR(0, 212, __pyx_L3_error)</span>
+      values[1] = <span class='pyx_c_api'>__Pyx_ArgRef_FASTCALL</span>(__pyx_args, 1);
+      if (!CYTHON_ASSUME_SAFE_MACROS &amp;&amp; unlikely(!values[1])) <span class='error_goto'>__PYX_ERR(0, 212, __pyx_L3_error)</span>
+    }
+    __pyx_v_start_id = <span class='pyx_c_api'>__Pyx_PyLong_As_unsigned_int</span>(values[0]); if (unlikely((__pyx_v_start_id == (unsigned int)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 212, __pyx_L3_error)</span>
+    __pyx_v_depth = <span class='pyx_c_api'>__Pyx_PyLong_As_unsigned_int</span>(values[1]); if (unlikely((__pyx_v_depth == (unsigned int)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 212, __pyx_L3_error)</span>
+  }
+  goto __pyx_L6_skip;
+  __pyx_L5_argtuple_error:;
+  <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("get_subgraph", 1, 2, 2, __pyx_nargs); <span class='error_goto'>__PYX_ERR(0, 212, __pyx_L3_error)</span>
+  __pyx_L6_skip:;
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L3_error:;
+  for (Py_ssize_t __pyx_temp=0; __pyx_temp &lt; (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+    Py_XDECREF(values[__pyx_temp]);
+  }
+  <span class='pyx_c_api'>__Pyx_AddTraceback</span>("astar.get_subgraph", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  <span class='refnanny'>__Pyx_RefNannyFinishContext</span>();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_5astar_12get_subgraph(__pyx_self, __pyx_v_start_id, __pyx_v_depth);
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+
+  /* function exit code */
+  for (Py_ssize_t __pyx_temp=0; __pyx_temp &lt; (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+    Py_XDECREF(values[__pyx_temp]);
+  }
+  <span class='refnanny'>__Pyx_RefNannyFinishContext</span>();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5astar_12get_subgraph(CYTHON_UNUSED PyObject *__pyx_self, unsigned int __pyx_v_start_id, unsigned int __pyx_v_depth) {
+  PyObject *__pyx_r = NULL;
+  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_r);
+  __pyx_t_1 = __pyx_f_5astar_get_subgraph(__pyx_v_start_id, __pyx_v_depth, 1);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 212, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+/* … */
+  __pyx_t_2 = <span class='pyx_c_api'>__Pyx_CyFunction_New</span>(&amp;__pyx_mdef_5astar_13get_subgraph, 0, __pyx_mstate_global-&gt;__pyx_n_u_get_subgraph, NULL, __pyx_mstate_global-&gt;__pyx_n_u_astar, __pyx_mstate_global-&gt;__pyx_d, ((PyObject *)__pyx_mstate_global-&gt;__pyx_codeobj_tab[6]));<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 212, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
+  #if CYTHON_COMPILING_IN_CPYTHON &amp;&amp; PY_VERSION_HEX &gt;= 0x030E0000
+  <span class='py_c_api'>PyUnstable_Object_EnableDeferredRefcount</span>(__pyx_t_2);
+  #endif
+  if (<span class='py_c_api'>PyDict_SetItem</span>(__pyx_mstate_global-&gt;__pyx_d, __pyx_mstate_global-&gt;__pyx_n_u_get_subgraph, __pyx_t_2) &lt; (0)) <span class='error_goto'>__PYX_ERR(0, 212, __pyx_L1_error)</span>
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_2); __pyx_t_2 = 0;
+</pre><pre class="cython line score-0">&#xA0;<span class="">213</span>: <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">214</span>: <span class="sd">    Bare-metal BFS traversal from start_id up to &#39;depth&#39; edges away.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">215</span>: <span class="sd">    Returns a list of node IDs. Executed entirely within nogil block.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">216</span>: <span class="sd">    &quot;&quot;&quot;</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">217</span>:     <span class="k">global</span> <span class="n">_global_graph</span></pre>
+<pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">218</span>:     <span class="k">if</span> <span class="n">_global_graph</span><span class="o">.</span><span class="n">node_count</span> <span class="o">==</span> <span class="mf">0</span> <span class="ow">or</span> <span class="n">start_id</span> <span class="o">&gt;=</span> <span class="n">_global_graph</span><span class="o">.</span><span class="n">node_count</span><span class="p">:</span></pre>
+<pre class='cython code score-0 '>  __pyx_t_2 = (__pyx_v_5astar__global_graph.node_count == 0);
+  if (!__pyx_t_2) {
+  } else {
+    __pyx_t_1 = __pyx_t_2;
+    goto __pyx_L4_bool_binop_done;
+  }
+  __pyx_t_2 = (__pyx_v_start_id &gt;= __pyx_v_5astar__global_graph.node_count);
+  __pyx_t_1 = __pyx_t_2;
+  __pyx_L4_bool_binop_done:;
+  if (__pyx_t_1) {
+/* … */
+  }
+</pre><pre class="cython line score-6" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">219</span>:         <span class="k">return</span> <span class="p">[]</span></pre>
+<pre class='cython code score-6 '>    <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_r);
+    __pyx_t_3 = <span class='py_c_api'>PyList_New</span>(0);<span class='error_goto'> if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 219, __pyx_L1_error)</span>
+    <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_3);
+    __pyx_r = __pyx_t_3;
+    __pyx_t_3 = 0;
+    goto __pyx_L0;
+</pre><pre class="cython line score-0">&#xA0;<span class="">220</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">221</span>:     <span class="k">cdef</span><span class="w"> </span><span class="kt">vector</span>[<span class="kt">unsigned</span> <span class="kt">int</span>] <span class="nv">result</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">222</span>:     <span class="k">cdef</span><span class="w"> </span><span class="kt">vector</span>[<span class="kt">char</span>] <span class="nv">visited</span></pre>
+<pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">223</span>:     <span class="n">visited</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">_global_graph</span><span class="o">.</span><span class="n">node_count</span><span class="p">,</span> <span class="mf">0</span><span class="p">)</span></pre>
+<pre class='cython code score-0 '>  try {
+    __pyx_v_visited.resize(__pyx_v_5astar__global_graph.node_count, 0);
+  } catch(...) {
+    __Pyx_CppExn2PyErr();
+    <span class='error_goto'>__PYX_ERR(0, 223, __pyx_L1_error)</span>
+  }
+</pre><pre class="cython line score-0">&#xA0;<span class="">224</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">225</span>:     <span class="k">cdef</span><span class="w"> </span><span class="kt">queue</span>[<span class="kt">NodeDepth</span>] <span class="nv">q</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">226</span>:     <span class="k">cdef</span><span class="w"> </span><span class="kt">NodeDepth</span> <span class="nv">entry</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">227</span>:     <span class="k">cdef</span><span class="w"> </span><span class="kt">NodeDepth</span> <span class="nv">current</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">228</span>:     <span class="k">cdef</span><span class="w"> </span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="nv">curr_id</span><span class="p">,</span> <span class="n">curr_depth</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">neighbor_id</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">229</span>:     <span class="k">cdef</span><span class="w"> </span><span class="kt">Node</span>* <span class="nv">node</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">230</span>:     <span class="k">cdef</span><span class="w"> </span><span class="kt">Edge</span>* <span class="nv">edge</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">231</span>: <span class="w">    </span></pre>
+<pre class="cython line score-21" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">232</span>:     <span class="k">with</span> <span class="k">nogil</span><span class="p">:</span></pre>
+<pre class='cython code score-21 '>  {
+      PyThreadState * _save;
+      _save = <span class='py_c_api'>PyEval_SaveThread</span>();
+      <span class='pyx_c_api'>__Pyx_FastGIL_Remember</span>();
+      /*try:*/ {
+/* … */
+      /*finally:*/ {
+        /*normal exit:*/{
+          <span class='pyx_c_api'>__Pyx_FastGIL_Forget</span>();
+          <span class='py_c_api'>PyEval_RestoreThread</span>(_save);
+          goto __pyx_L8;
+        }
+        __pyx_L7_error: {
+          <span class='pyx_c_api'>__Pyx_FastGIL_Forget</span>();
+          <span class='py_c_api'>PyEval_RestoreThread</span>(_save);
+          goto __pyx_L1_error;
+        }
+        __pyx_L8:;
+      }
+  }
+</pre><pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">233</span>:         <span class="n">visited</span><span class="p">[</span><span class="n">start_id</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1</span></pre>
+<pre class='cython code score-0 '>        (__pyx_v_visited[__pyx_v_start_id]) = 1;
+</pre><pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">234</span>:         <span class="n">entry</span><span class="o">.</span><span class="n">first</span> <span class="o">=</span> <span class="n">start_id</span></pre>
+<pre class='cython code score-0 '>        __pyx_v_entry.first = __pyx_v_start_id;
+</pre><pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">235</span>:         <span class="n">entry</span><span class="o">.</span><span class="n">second</span> <span class="o">=</span> <span class="mf">0</span></pre>
+<pre class='cython code score-0 '>        __pyx_v_entry.second = 0;
+</pre><pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">236</span>:         <span class="n">q</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span></pre>
+<pre class='cython code score-0 '>        __pyx_v_q.push(__pyx_v_entry);
+</pre><pre class="cython line score-0">&#xA0;<span class="">237</span>: </pre>
+<pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">238</span>:         <span class="k">while</span> <span class="ow">not</span> <span class="n">q</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span></pre>
+<pre class='cython code score-0 '>        while (1) {
+          __pyx_t_1 = (!__pyx_v_q.empty());
+          if (!__pyx_t_1) break;
+</pre><pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">239</span>:             <span class="n">current</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">front</span><span class="p">()</span></pre>
+<pre class='cython code score-0 '>          __pyx_v_current = __pyx_v_q.front();
+</pre><pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">240</span>:             <span class="n">q</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span></pre>
+<pre class='cython code score-0 '>          __pyx_v_q.pop();
+</pre><pre class="cython line score-0">&#xA0;<span class="">241</span>: </pre>
+<pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">242</span>:             <span class="n">curr_id</span> <span class="o">=</span> <span class="n">current</span><span class="o">.</span><span class="n">first</span></pre>
+<pre class='cython code score-0 '>          __pyx_t_4 = __pyx_v_current.first;
+          __pyx_v_curr_id = __pyx_t_4;
+</pre><pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">243</span>:             <span class="n">curr_depth</span> <span class="o">=</span> <span class="n">current</span><span class="o">.</span><span class="n">second</span></pre>
+<pre class='cython code score-0 '>          __pyx_t_4 = __pyx_v_current.second;
+          __pyx_v_curr_depth = __pyx_t_4;
+</pre><pre class="cython line score-4" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">244</span>:             <span class="n">result</span><span class="o">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">curr_id</span><span class="p">)</span></pre>
+<pre class='cython code score-4 '>          try {
+            __pyx_v_result.push_back(__pyx_v_curr_id);
+          } catch(...) {
+            PyGILState_STATE __pyx_gilstate_save = <span class='pyx_c_api'>__Pyx_PyGILState_Ensure</span>();
+            __Pyx_CppExn2PyErr();
+            <span class='pyx_c_api'>__Pyx_PyGILState_Release</span>(__pyx_gilstate_save);
+            <span class='error_goto'>__PYX_ERR(0, 244, __pyx_L7_error)</span>
+          }
+</pre><pre class="cython line score-0">&#xA0;<span class="">245</span>: </pre>
+<pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">246</span>:             <span class="k">if</span> <span class="n">curr_depth</span> <span class="o">&lt;</span> <span class="n">depth</span><span class="p">:</span></pre>
+<pre class='cython code score-0 '>          __pyx_t_1 = (__pyx_v_curr_depth &lt; __pyx_v_depth);
+          if (__pyx_t_1) {
+/* … */
+          }
+        }
+      }
+</pre><pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">247</span>:                 <span class="n">node</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">_global_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">curr_id</span><span class="p">]</span></pre>
+<pre class='cython code score-0 '>            __pyx_v_node = (&amp;(__pyx_v_5astar__global_graph.nodes[__pyx_v_curr_id]));
+</pre><pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">248</span>:                 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">edge_start_idx</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">edge_start_idx</span> <span class="o">+</span> <span class="n">node</span><span class="o">.</span><span class="n">edge_count</span><span class="p">):</span></pre>
+<pre class='cython code score-0 '>            __pyx_t_4 = (__pyx_v_node-&gt;edge_start_idx + __pyx_v_node-&gt;edge_count);
+            __pyx_t_5 = __pyx_t_4;
+            for (__pyx_t_6 = __pyx_v_node-&gt;edge_start_idx; __pyx_t_6 &lt; __pyx_t_5; __pyx_t_6+=1) {
+              __pyx_v_i = __pyx_t_6;
+</pre><pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">249</span>:                     <span class="n">edge</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">_global_graph</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></pre>
+<pre class='cython code score-0 '>              __pyx_v_edge = (&amp;(__pyx_v_5astar__global_graph.edges[__pyx_v_i]));
+</pre><pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">250</span>:                     <span class="n">neighbor_id</span> <span class="o">=</span> <span class="n">edge</span><span class="o">.</span><span class="n">target_id</span></pre>
+<pre class='cython code score-0 '>              __pyx_t_7 = __pyx_v_edge-&gt;target_id;
+              __pyx_v_neighbor_id = __pyx_t_7;
+</pre><pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">251</span>:                     <span class="k">if</span> <span class="ow">not</span> <span class="n">visited</span><span class="p">[</span><span class="n">neighbor_id</span><span class="p">]:</span></pre>
+<pre class='cython code score-0 '>              __pyx_t_1 = (!((__pyx_v_visited[__pyx_v_neighbor_id]) != 0));
+              if (__pyx_t_1) {
+/* … */
+              }
+            }
+</pre><pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">252</span>:                         <span class="n">visited</span><span class="p">[</span><span class="n">neighbor_id</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1</span></pre>
+<pre class='cython code score-0 '>                (__pyx_v_visited[__pyx_v_neighbor_id]) = 1;
+</pre><pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">253</span>:                         <span class="n">entry</span><span class="o">.</span><span class="n">first</span> <span class="o">=</span> <span class="n">neighbor_id</span></pre>
+<pre class='cython code score-0 '>                __pyx_v_entry.first = __pyx_v_neighbor_id;
+</pre><pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">254</span>:                         <span class="n">entry</span><span class="o">.</span><span class="n">second</span> <span class="o">=</span> <span class="n">curr_depth</span> <span class="o">+</span> <span class="mf">1</span></pre>
+<pre class='cython code score-0 '>                __pyx_v_entry.second = (__pyx_v_curr_depth + 1);
+</pre><pre class="cython line score-0" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">255</span>:                         <span class="n">q</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span></pre>
+<pre class='cython code score-0 '>                __pyx_v_q.push(__pyx_v_entry);
+</pre><pre class="cython line score-0">&#xA0;<span class="">256</span>: </pre>
+<pre class="cython line score-3" onclick="(function(f,s,c){c=f.nodeValue=='+';s.display=c?'block':'none';f.nodeValue=c?'−':'+'})(this.firstChild,this.nextElementSibling.style)">+<span class="">257</span>:     <span class="k">return</span> <span class="n">result</span></pre>
+<pre class='cython code score-3 '>  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_r);
+  __pyx_t_3 = <span class='pyx_c_api'>__pyx_convert_vector_to_py_unsigned_int</span>(__pyx_v_result);<span class='error_goto'> if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 257, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_3);
+  __pyx_r = __pyx_t_3;
+  __pyx_t_3 = 0;
   goto __pyx_L0;
 </pre></div></body></html>

@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis-eventflow
+    ports:
+      - "6379:6379"
+    networks:
+      - eventflow-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+networks:
+  eventflow-net:
+    driver: bridge

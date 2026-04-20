@@ -18,14 +18,8 @@ class RedisStateService:
         self._listener_task = None
 
     async def connect(self):
-        if self.redis_url == "mock-redis":
-            import fakeredis.aioredis as fakeredis
-            print("[REDIS] Running in MOCK mode (fakeredis).")
-            self.client = fakeredis.FakeRedis(decode_responses=True)
-        else:
-            print(f"[REDIS] Connecting to {self.redis_url}")
-            self.client = redis.from_url(self.redis_url, decode_responses=True)
-        
+        print(f"[REDIS] Connecting to {self.redis_url}")
+        self.client = redis.from_url(self.redis_url, decode_responses=True)
         self.pubsub = self.client.pubsub()
 
     async def sync_initial_state(self, venue_data: dict):
@@ -42,7 +36,11 @@ class RedisStateService:
                     "occupancy": 0,
                     "weight": 0.0
                 })
-            await pipe.execute()
+            try:
+                await pipe.execute()
+                print("[REDIS] Successfully synchronized initial state.")
+            except Exception as e:
+                print(f"[REDIS_WARNING] Sync failed (Environment issue): {e}")
         print(f"[REDIS] Initialized {len(venue_data.get('zones', []))} zones.")
 
     async def update_zone_weight(self, zone_id: int, weight: float):
@@ -74,6 +72,13 @@ class RedisStateService:
         except asyncio.CancelledError:
             await self.pubsub.unsubscribe("venue:stadium:updates")
             print("[REDIS] Pub/Sub listener shut down.")
+
+    async def broadcast_system_event(self, event_type: str, data: dict = None):
+        """
+        Publishes a system-level event (e.g. RELOAD) to all active subscribers.
+        """
+        payload = {"type": event_type, "data": data or {}}
+        await self.client.publish("venue:stadium:updates", json.dumps(payload))
 
     def add_client(self, queue: asyncio.Queue):
         self._connected_clients.add(queue)
