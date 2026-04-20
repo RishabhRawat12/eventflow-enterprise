@@ -1,0 +1,96 @@
+:root {
+  /* High-Contrast Enterprise Theme (WCAG 2.1 AA Compliant) */
+  --bg-primary: #0a0c10;
+  --bg-secondary: #161b22;
+  --text-primary: #f0f6fc;
+  --text-secondary: #8b949e;
+  --accent-primary: #58a6ff;
+  --accent-secondary: #1f6feb;
+  
+  /* Status Colors */
+  --status-clear: #3fb950;
+  --status-moderate: #d29922;
+  --status-crowded: #db6d28;
+  --status-critical: #f85149;
+  
+  /* Accessibility focus */
+  --focus-ring: 2px solid #ffffff;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* High-Visibility Focus State */
+*:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Page Layouts */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+/* Persona-specific layouts */
+.staff-dashboard {
+  background-color: var(--bg-primary);
+}
+
+.attendee-guide {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* Utility Classes */
+.aria-live-region {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+.alert-assertive {
+  background-color: var(--status-critical);
+  color: white;
+}
+
+.alert-polite {
+  background-color: var(--accent-secondary);
+  color: white;
+}
+
+/* SVG Map Overlay */
+.map-canvas {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  width: 100%;
+  height: 600px;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+}
+
+@media (max-width: 900px) {
+  main {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,36 @@
+# Node.js
+apps/client/node_modules/
+apps/client/dist/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+ENV/
+*.pyd
+*.so
+build/
+*.egg-info/
+
+# Environments
+.env
+.env.local
+
+# IDEs
+.vscode/
+.idea/
+
+# Cython
+apps/server/routing/astar.c
+apps/server/routing/astar.*.pyd
+apps/server/routing/astar.*.so
+
+# Go
+apps/load-generator/load-gen
+apps/load-generator/bin/
+
+# Logs
+*.log

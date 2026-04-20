@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package eventflow;
+
+import "google/protobuf/timestamp.proto";
+
+// TelemetryEvent captures high-frequency system metrics for BigQuery
+message TelemetryEvent {
+  string venue_id = 1;         // Unique identifier for the venue
+  uint32 node_id = 2;          // ID of the zone/node being updated
+  uint32 occupancy = 3;        // Current number of attendees in the zone
+  uint32 capacity = 4;         // Maximum capacity of the zone
+  google.protobuf.Timestamp timestamp = 5; // Event occurrence time
+  string event_type = 6;       // Type of event (e.g., "OCCUPANCY_UPDATE", "PATH_FIND")
+  float latency_ms = 7;        // Processing latency for the event in milliseconds
+  string session_id = 8;       // Trace ID for aggregating user sessions
+  string metadata_json = 9;    // Flexible JSON field for additional event context
+}

@@ -1,0 +1,16 @@
+?start: venue_package
+
+venue_package: "venue" STRING "{" definition* "}"
+
+?definition: zone_def | edge_def | config_def
+
+zone_def: "zone" STRING "{" "cap" ":" NUMBER "," "loc" ":" "(" NUMBER "," NUMBER ")" "}"
+edge_def: "edge" STRING "->" STRING "{" "weight" ":" NUMBER "," "flow" ":" STRING "}"
+config_def: "config" STRING ":" STRING
+
+STRING: /"[^"]*"/
+NUMBER: /-?\d+(\.\d+)?/
+
+%import common.WS
+%import common.ESCAPED_STRING
+%ignore WS
